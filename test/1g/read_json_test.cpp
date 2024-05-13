@@ -15,7 +15,8 @@
 * 读取JSON信息
 */
 TEST(GBSecondJsonTest, ReadJson) {
-    std::cout << "Starting Read JSON Test." << std::endl;
+    // /usr/bin/clang
+    std::cout << "Starting Read JSON Test."  << std::endl;
     std::ifstream is(GBSecond::JSON_FILE_PATH, std::ios::in);
     if (!is.is_open()) {
         std::cout << "file Open fail." << std::endl;
@@ -29,7 +30,5 @@ TEST(GBSecondJsonTest, ReadJson) {
         }
     }
     is.close();
-
-    std::cout.flush();
 }
 

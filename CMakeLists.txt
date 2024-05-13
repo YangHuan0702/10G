@@ -9,6 +9,10 @@ SET(BUILD_SHARED_LIBS OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 add_definitions("-DJSONFILE_PATH=/home/py/feedback_data.txt")
 
 set(PROJECT_INCLUDE_DIR "src/include")
@@ -25,5 +29,8 @@ include_directories(BEFORE src)
 add_compile_options("-fexceptions")
 add_link_options("-fexceptions")
 
+add_subdirectory(src)
 add_subdirectory(third_party)
 add_subdirectory(test)
+
+add_executable(main main.cpp)
