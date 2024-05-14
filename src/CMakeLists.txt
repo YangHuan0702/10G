@@ -1,7 +1,9 @@
 add_subdirectory(buffer)
+add_subdirectory(disk)
 
 set(10G_lib
-        second_buffer)
+        gbSecond_buffer
+        gbSecond_disk)
 
 find_package(Threads REQUIRED)
 

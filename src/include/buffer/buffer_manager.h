@@ -4,7 +4,20 @@
 
 #pragma once
 
+#include "disk/disk_manager.h"
+#include "common/macro.h"
+
+
 namespace GBSecond {
 
+
+    class BufferPoolManager {
+
+    private:
+        DiskManager *diskManager;
+
+        Page *pages;
+
+    };
 
 }
