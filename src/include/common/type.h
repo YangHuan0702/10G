@@ -7,4 +7,8 @@
 namespace GBSecond{
 
     typedef long long page_id_t;
+
+
+    typedef long int frame_id_t;
+
 }

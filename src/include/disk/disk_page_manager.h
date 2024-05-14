@@ -12,6 +12,8 @@ namespace GBSecond {
     public:
         explicit DiskPageManager(const std::string &path);
         ~DiskPageManager() noexcept override;
+        DiskPageManager(const DiskPageManager &diskPageManager) = delete;
+        DiskPageManager& operator=(const DiskPageManager &diskPageManager) = delete;
 
         /**
          * 读取Page，offset为Page的id
