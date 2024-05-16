@@ -72,6 +72,10 @@ namespace GBSecond {
         }
 
     private:
+        auto CreatePage() -> Page*;
+
+
+    private:
         DiskManager *diskManager_;
 
         Page *pages_;
@@ -87,8 +91,6 @@ namespace GBSecond {
         std::mutex latch_;
 
         LruReplace lruReplace;
-
-        std::vector<page_id_t> pin_pages_;
 
     };
 

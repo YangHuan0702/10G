@@ -20,6 +20,9 @@ namespace GBSecond{
         Page(const Page &page) = delete;
         Page& operator=(const Page &page) = delete;
 
+        auto ResetPageData() -> void {
+            memset(data_,0,PAGE_SIZE);
+        }
 
         ~Page() {
             delete [] data_;
@@ -38,7 +41,8 @@ namespace GBSecond{
                 pin_ --;
             }
         }
-
+        inline auto SetPinCount(size_t pinCount) -> void { pin_ = pinCount;}
+        inline auto GetPinCount() -> size_t { return pin_;}
         inline auto RLock() -> void { rw_latch_.lock_shared();}
         inline auto RUnLock() -> void { rw_latch_.unlock_shared();}
         inline auto WLock() -> void { rw_latch_.lock();}
