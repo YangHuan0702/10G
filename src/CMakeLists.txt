@@ -1,9 +1,12 @@
 add_subdirectory(buffer)
 add_subdirectory(disk)
+add_subdirectory(task)
 
 set(10G_lib
         gbSecond_buffer
-        gbSecond_disk)
+        gbSecond_disk
+        gbSecond_task
+        )
 
 find_package(Threads REQUIRED)
 
