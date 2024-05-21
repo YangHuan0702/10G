@@ -23,7 +23,7 @@ namespace GBSecond {
 
     public:
         explicit SynchronizedQueue() = default;
-        ~SynchronizedQueue() = default;
+        ~SynchronizedQueue() override = default;
         SynchronizedQueue(const SynchronizedQueue &queue) = default;
         auto operator=(const SynchronizedQueue &queue) -> SynchronizedQueue& = default;
         SynchronizedQueue(SynchronizedQueue&& queue)  noexcept = default;
@@ -34,13 +34,13 @@ namespace GBSecond {
          * @param t 任务
          * @return 是否添加成功
          */
-        auto Push(const T &t) noexcept -> void override;
+        auto Push(const T &t) noexcept -> bool override;
 
         /**
          * 弹出一个任务
          * @return 任务
          */
-        auto Pop() noexcept -> T& override;
+        auto Pop() noexcept -> T override;
 
         /**
          * 获取队列当前大小

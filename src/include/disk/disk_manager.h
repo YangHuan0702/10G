@@ -17,7 +17,7 @@ namespace GBSecond{
     class DiskManager {
     public:
         explicit DiskManager() = default;
-        virtual ~DiskManager() = 0;
+        virtual ~DiskManager() {};
 
 
         /**
@@ -26,6 +26,14 @@ namespace GBSecond{
          * @return
          */
         virtual auto Read(Page *page) -> bool = 0;
+
+        /**
+         * 根据PageId读取数据
+         * @param pageId pageid
+         * @return datas
+         */
+        virtual auto Read(page_id_t pageId) -> std::string = 0;
+
     };
 
 

@@ -34,4 +34,13 @@ namespace GBSecond {
         return true;
     }
 
+
+    auto DiskPageManager::Read(GBSecond::page_id_t pageId) -> std::string {
+        char r[PAGE_SIZE] = {0};
+        fs_->seekg(SEEKG_POS(pageId));
+        fs_->read(r, PAGE_SIZE);
+        // Avoid repeating the return type from the declaration; use a braced initializer list instead
+        return {r,PAGE_SIZE};
+    }
+
 }

@@ -22,6 +22,13 @@ namespace GBSecond {
          */
         auto Read(Page *page) -> bool override;
 
+        /**
+         * 读取Page
+         * @param pageId
+         * @return
+         */
+        auto Read(page_id_t pageId) -> std::string override;
+
     private:
         __attribute_maybe_unused__ std::string file_name_;
         __attribute_maybe_unused__ std::string file_path_;
