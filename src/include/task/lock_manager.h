@@ -8,6 +8,7 @@
 #include <condition_variable>
 
 #include "capacity_manager.h"
+#include "mutex_queue.h"
 #include "task_item.h"
 
 namespace GBSecond{
@@ -26,6 +27,11 @@ namespace GBSecond{
         // 禁用移动操作
         LockManager(LockManager&&) = delete;
         LockManager& operator=(LockManager&&) = delete;
+
+        auto SetQueue(std::shared_ptr<SynchronizedQueue<Task>> &queue) -> void {
+            this->queue_ = std::move(queue);
+        }
+
 
         auto Wait() -> void;
 

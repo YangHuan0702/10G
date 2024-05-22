@@ -10,16 +10,19 @@ namespace GBSecond {
 
     TASK_MACRO
     auto SynchronizedQueue<T>::Push(const T &t) noexcept -> bool {
-        std::lock_guard<std::mutex> guard(lock_);
+        std::unique_lock<std::mutex> lock(lock_);
         task_.push(t);
         queue_size_++;
+        cv_.notify_all();
         return true;
     }
 
 
     TASK_MACRO
     auto SynchronizedQueue<T>::Pop() noexcept -> T {
-        std::lock_guard<std::mutex> guard(lock_);
+//        for(;queue_size_<=0;) {}
+        std::unique_lock<std::mutex> lock(lock_);
+        cv_.wait(lock,[this]{ return this->queue_size_ > 0;});
         auto r = task_.front();
         task_.pop();
         queue_size_--;

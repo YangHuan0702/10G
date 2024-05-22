@@ -13,14 +13,12 @@ namespace GBSecond {
 
         while (true) {
 //            std::cout<< "TaskHandler Exec..." << std::endl;
-            lock_->Wait();
             auto task = queue_->Pop();
-            lock_->Notify();
 
-            std::cout << "Consumer Msg ." << std::endl;
             if (task.GetTaskType() == TaskType::STOP) {
                 break;
             }
+            std::cout << "Consumer Msg ." << std::endl;
 
             auto ss = task.ReadData();
 
@@ -53,7 +51,6 @@ namespace GBSecond {
 //            ref.Run();
 //        }
         queue_->Push(t);
-        lockManager_->Notify();
         return true;
     }
 

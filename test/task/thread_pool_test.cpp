@@ -16,7 +16,7 @@ namespace GBSecond{
         size_t max = 10;
         size_t seconds = 3;
 
-        auto capacity = std::make_unique<SynchronizedQueue<Task>>();
+        auto capacity = std::make_shared<SynchronizedQueue<Task>>();
         std::function<bool (Task&&)> function;
 
         ThreadPoolManager<Task> threadPoolManager(core,max,capacity,seconds, function);

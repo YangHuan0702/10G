@@ -9,6 +9,7 @@
 
 #include <queue>
 #include <mutex>
+#include <condition_variable>
 
 
 namespace GBSecond {
@@ -53,7 +54,9 @@ namespace GBSecond {
         std::queue<T> task_;
         std::mutex lock_;
 
-        size_t queue_size_{0};
+        std::condition_variable cv_;
+
+        volatile size_t queue_size_{0};
     };
 
 

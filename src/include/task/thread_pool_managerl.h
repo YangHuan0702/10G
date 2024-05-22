@@ -128,7 +128,7 @@ namespace GBSecond {
     class ThreadPoolManager {
 
     public:
-        explicit ThreadPoolManager(size_t core,size_t max,std::unique_ptr<SynchronizedQueue<T>> &queue,
+        explicit ThreadPoolManager(size_t core,size_t max,std::shared_ptr<SynchronizedQueue<T>> &queue,
                                    size_t activeTime,std::function<bool (T&&)> refusalPolicy)
                                    : core_(core),max_(max),active_times_(activeTime),refusal_policy_(refusalPolicy){
             queue_ = std::move(queue);
@@ -148,6 +148,13 @@ namespace GBSecond {
         ThreadPoolManager(ThreadPoolManager &&threadPoolManager) = delete;
         auto operator=(ThreadPoolManager &threadPoolManager) -> ThreadPoolManager& = delete;
         auto operator=(ThreadPoolManager &&threadPoolManager) -> ThreadPoolManager& = delete;
+
+        auto GetLockManager() -> std::shared_ptr<LockManager> {
+            return lockManager_;
+        }
+        auto GetSynchronizedQueue() -> std::shared_ptr<CapacityManager<T>> {
+            return queue_;
+        }
 
         /**
          * 添加任务
