@@ -12,8 +12,15 @@ namespace GBSecond {
         threadStatus_ = ThreadStatus::RUNNING;
 
         while (true) {
-            cv_.wait(lock_);
+//            std::cout<< "TaskHandler Exec..." << std::endl;
+            lock_->Wait();
             auto task = queue_->Pop();
+            lock_->Notify();
+
+            std::cout << "Consumer Msg ." << std::endl;
+            if (task.GetTaskType() == TaskType::STOP) {
+                break;
+            }
 
             auto ss = task.ReadData();
 
@@ -26,9 +33,9 @@ namespace GBSecond {
                     count++;
                 }
             }
-
-            std::cout << "count : " << count << std::endl;
+//            std::cout << "count : " << count << std::endl;
         }
+        std::cout << "ThreadId Done " << std::endl;
     }
 
 
@@ -41,12 +48,13 @@ namespace GBSecond {
         }
 
         // 是否所有核心线程都处于工作状态，如果是的话，需要新建工作线程来加大处理速度
-        if (BusyForAllCores()) {
-            auto &ref = works_.emplace_back(false,queue_,active_times_,thread_latch_);
-            ref.Run();
-        }
+//        if (BusyForAllCores()) {
+//            auto &ref = works_.emplace_back(false,queue_,active_times_,lockManager_);
+//            ref.Run();
+//        }
         queue_->Push(t);
-        return queue_->Push(t);
+        lockManager_->Notify();
+        return true;
     }
 
 
@@ -62,6 +70,19 @@ namespace GBSecond {
         return r;
     }
 
+    TASK_MACRO
+    auto ThreadPoolManager<T>::Stop() noexcept -> void {
+
+    }
+
+
+
+    TASK_MACRO
+    auto ThreadPoolManager<T>::Wait() noexcept -> void {
+        for (auto &item : cores_) {
+            item.Join();
+        }
+    }
 
     template
     class ThreadPoolManager<Task>;

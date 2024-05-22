@@ -14,11 +14,13 @@
 #include <thread>
 #include <functional>
 #include <chrono>
+#include <algorithm>
 
 
 #include "common/type.h"
 #include "mutex_queue.h"
 #include "task_item.h"
+#include "lock_manager.h"
 
 namespace GBSecond {
 
@@ -29,15 +31,21 @@ namespace GBSecond {
     };
 
 
+
     /**
      * 线程类
      */
 
     class TaskHandlerThread {
     public:
-        explicit TaskHandlerThread(bool isCore,std::shared_ptr<CapacityManager<Task>> queue,size_t seconds,std::mutex &threadPoolLatch)  noexcept
-        : isCore_(isCore),free_times_(std::chrono::system_clock::now()),queue_(std::move(queue)),free_seconds_(seconds),lock_(threadPoolLatch) {
+        explicit TaskHandlerThread(bool isCore,std::shared_ptr<CapacityManager<Task>> queue,size_t seconds,
+                                   std::shared_ptr<LockManager> lockManager)  noexcept {
             // Reference to non-static member function must be called; did you mean to call it with no arguments?
+            isCore_ = isCore;
+            free_times_ = std::chrono::system_clock::now();
+            queue_ = std::move(queue);
+            free_seconds_ = seconds;
+            lock_ = lockManager;
             threadStatus_ = ThreadStatus::CREATE;
         };
         ~TaskHandlerThread() noexcept {
@@ -46,16 +54,24 @@ namespace GBSecond {
             }
         }
 
-        TaskHandlerThread(const TaskHandlerThread &t)  {
+        TaskHandlerThread(const TaskHandlerThread &t) = delete;
+        auto operator=(const TaskHandlerThread &t) -> TaskHandlerThread& = delete;
+        TaskHandlerThread(TaskHandlerThread &&t) {
             queue_ = t.queue_;
             isCore_ = t.isCore_;
             free_times_ = std::chrono::system_clock::now();
             free_seconds_ = t.free_seconds_;
-
+            lock_ = t.lock_;
+            std::cout << "Move desr" << std::endl;
         };
-        auto operator=(const TaskHandlerThread &t) -> TaskHandlerThread& = delete;
-        TaskHandlerThread(TaskHandlerThread &&t) = delete;
-        auto operator=(TaskHandlerThread &&t) -> TaskHandlerThread& = delete;
+        auto operator=(TaskHandlerThread &&t) -> TaskHandlerThread& {
+            queue_ = t.queue_;
+            isCore_ = t.isCore_;
+            free_times_ = std::chrono::system_clock::now();
+            free_seconds_ = t.free_seconds_;
+            lock_ = t.lock_;
+            return *this;
+        };
 
 
         /**
@@ -64,6 +80,9 @@ namespace GBSecond {
         auto Start() -> void {
             threadStatus_ = ThreadStatus::READY;
             thread_ = std::thread([this] {
+                if (this->lock_.get() == nullptr) {
+                    throw std::runtime_error("LockManager is nullptr.");
+                }
                 this->Run();
             });
         }
@@ -101,9 +120,7 @@ namespace GBSecond {
 
         __attribute_maybe_unused__ size_t free_seconds_{};
 
-        std::condition_variable cv_;
-
-        std::unique_lock<std::mutex> lock_;
+        std::shared_ptr<LockManager> lock_;
     };
 
 
@@ -113,14 +130,17 @@ namespace GBSecond {
     public:
         explicit ThreadPoolManager(size_t core,size_t max,std::unique_ptr<SynchronizedQueue<T>> &queue,
                                    size_t activeTime,std::function<bool (T&&)> refusalPolicy)
-                                   : queue_(std::move(queue)),core_(core),max_(max),active_times_(activeTime),refusal_policy_(refusalPolicy){
+                                   : core_(core),max_(max),active_times_(activeTime),refusal_policy_(refusalPolicy){
+            queue_ = std::move(queue);
+            lockManager_ = std::make_shared<LockManager>();
+            cores_.reserve(core);
             for (size_t i = 0; i < core; ++i){
-                cores_.emplace_back(true,queue_,active_times_,thread_latch_);
-                free_core_threads_.push_back(i);
-
+                cores_.emplace_back(true,queue_,activeTime,lockManager_);
                 // 启动核心线程
-                cores_[i].Start();
             }
+            std::for_each(cores_.begin(),cores_.end(),[&](TaskHandlerThread &taskHandler) {
+                taskHandler.Start();
+            });
             current_size_ = core;
         }
         ~ThreadPoolManager() = default;
@@ -136,6 +156,13 @@ namespace GBSecond {
          */
         auto Execute(T &t) noexcept -> bool;
 
+        /**
+         * 停止线程
+         */
+        auto Stop() noexcept -> void;
+
+
+        auto Wait() noexcept -> void;
 
     private:
 
@@ -148,6 +175,8 @@ namespace GBSecond {
         std::mutex latch_;
         std::condition_variable cv_;
 
+        std::shared_ptr<LockManager> lockManager_;
+
         // 任务的缓冲队列
         std::shared_ptr<CapacityManager<T>> queue_;
 
@@ -155,12 +184,10 @@ namespace GBSecond {
         std::vector<T> need_merge_task_;
 
         // 核心线程数
-        size_t core_;
+        __attribute_maybe_unused__ size_t core_;
 
         // 最大线程数
         size_t max_;
-
-        std::mutex thread_latch_;
 
         // 当前线程数
         std::atomic<size_t> current_size_{0};
