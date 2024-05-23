@@ -4,7 +4,6 @@
 
 #include <gtest/gtest.h>
 #include <memory>
-#include <condition_variable>
 #include "task/mutex_queue.h"
 #include "task/thread_pool_managerl.h"
 #include "disk/disk_page_manager.h"
@@ -31,18 +30,7 @@ namespace GBSecond{
 
         threadPoolManager.Execute(task);
 
-        Task task1{0,&residueCache,&diskPageManager,TaskType::STOP};
-        Task task2{0,&residueCache,&diskPageManager,TaskType::STOP};
-        Task task3{0,&residueCache,&diskPageManager,TaskType::STOP};
-        Task task4{0,&residueCache,&diskPageManager,TaskType::STOP};
-        Task task5{0,&residueCache,&diskPageManager,TaskType::STOP};
-        threadPoolManager.Execute(task1);
-        threadPoolManager.Execute(task2);
-        threadPoolManager.Execute(task3);
-        threadPoolManager.Execute(task4);
-        threadPoolManager.Execute(task5);
-
+        threadPoolManager.Stop();
         threadPoolManager.Wait();
-        std::cout << "Thread Pool End." << std::endl;
     }
 }

@@ -34,6 +34,14 @@ namespace GBSecond{
          */
         virtual auto Read(page_id_t pageId) -> std::string = 0;
 
+        /**
+         * 根据PageId读取数据
+         * @param pageId pageId
+         * @param readSize readSize
+         * @return
+         */
+        virtual auto Read(page_id_t pageId,size_t readSize) -> std::string = 0;
+
     };
 
 

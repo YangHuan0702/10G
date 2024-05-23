@@ -26,12 +26,12 @@ namespace GBSecond {
         auto r = task_.front();
         task_.pop();
         queue_size_--;
+        std::cout << "process pop : " << this->queue_size_ << std::endl;
         return r;
     }
 
     TASK_MACRO
     auto SynchronizedQueue<T>::GetSize() noexcept -> size_t {
-        std::lock_guard<std::mutex> guard(lock_);
         return queue_size_;
     }
 

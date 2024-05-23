@@ -10,7 +10,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
-
+#include <atomic>
 
 namespace GBSecond {
 
@@ -25,10 +25,10 @@ namespace GBSecond {
     public:
         explicit SynchronizedQueue() = default;
         ~SynchronizedQueue() override = default;
-        SynchronizedQueue(const SynchronizedQueue &queue) = default;
-        auto operator=(const SynchronizedQueue &queue) -> SynchronizedQueue& = default;
-        SynchronizedQueue(SynchronizedQueue&& queue)  noexcept = default;
-        auto operator=(SynchronizedQueue &&queue) noexcept -> SynchronizedQueue& = default;
+        SynchronizedQueue(const SynchronizedQueue &queue) = delete;
+        auto operator=(const SynchronizedQueue &queue) -> SynchronizedQueue& = delete;
+        SynchronizedQueue(SynchronizedQueue&& queue)  noexcept = delete;
+        auto operator=(SynchronizedQueue &&queue) noexcept -> SynchronizedQueue& = delete;
 
         /**
          * 提交任务
@@ -56,7 +56,7 @@ namespace GBSecond {
 
         std::condition_variable cv_;
 
-        volatile size_t queue_size_{0};
+        std::atomic_int64_t queue_size_{0};
     };
 
 

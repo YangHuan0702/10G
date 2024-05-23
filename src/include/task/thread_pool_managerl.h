@@ -15,6 +15,7 @@
 #include <functional>
 #include <chrono>
 #include <algorithm>
+#include <utility>
 
 
 #include "common/type.h"
@@ -28,6 +29,7 @@ namespace GBSecond {
         CREATE,
         READY,
         RUNNING,
+        STOP
     };
 
 
@@ -39,14 +41,15 @@ namespace GBSecond {
     class TaskHandlerThread {
     public:
         explicit TaskHandlerThread(bool isCore,std::shared_ptr<CapacityManager<Task>> queue,size_t seconds,
-                                   std::shared_ptr<LockManager> lockManager)  noexcept {
+                                   std::shared_ptr<LockManager> lockManager,std::atomic_int64_t *count)  noexcept {
             // Reference to non-static member function must be called; did you mean to call it with no arguments?
             isCore_ = isCore;
             free_times_ = std::chrono::system_clock::now();
-            queue_ = std::move(queue);
+            queue_ = queue;
             free_seconds_ = seconds;
             lock_ = lockManager;
             threadStatus_ = ThreadStatus::CREATE;
+            count_ = count;
         };
         ~TaskHandlerThread() noexcept {
             if (thread_.joinable()) {
@@ -56,20 +59,21 @@ namespace GBSecond {
 
         TaskHandlerThread(const TaskHandlerThread &t) = delete;
         auto operator=(const TaskHandlerThread &t) -> TaskHandlerThread& = delete;
-        TaskHandlerThread(TaskHandlerThread &&t) {
+        TaskHandlerThread(TaskHandlerThread &&t) noexcept {
             queue_ = t.queue_;
             isCore_ = t.isCore_;
             free_times_ = std::chrono::system_clock::now();
             free_seconds_ = t.free_seconds_;
             lock_ = t.lock_;
-            std::cout << "Move desr" << std::endl;
+            count_ = t.count_;
         };
-        auto operator=(TaskHandlerThread &&t) -> TaskHandlerThread& {
+        auto operator=(TaskHandlerThread &&t) noexcept -> TaskHandlerThread& {
             queue_ = t.queue_;
             isCore_ = t.isCore_;
             free_times_ = std::chrono::system_clock::now();
             free_seconds_ = t.free_seconds_;
             lock_ = t.lock_;
+            count_ = t.count_;
             return *this;
         };
 
@@ -80,7 +84,7 @@ namespace GBSecond {
         auto Start() -> void {
             threadStatus_ = ThreadStatus::READY;
             thread_ = std::thread([this] {
-                if (this->lock_.get() == nullptr) {
+                if (lock_ == nullptr) {
                     throw std::runtime_error("LockManager is nullptr.");
                 }
                 this->Run();
@@ -93,7 +97,7 @@ namespace GBSecond {
         auto Run() -> void;
 
         auto Join() -> void {
-            if (thread_.joinable()) {
+            if (threadStatus_ != ThreadStatus::STOP && thread_.joinable()) {
                 thread_.join();
             }
         }
@@ -112,7 +116,7 @@ namespace GBSecond {
 
         std::thread thread_;
 
-        ThreadStatus threadStatus_{ThreadStatus::READY};
+        volatile ThreadStatus threadStatus_{ThreadStatus::READY};
 
         std::chrono::system_clock::time_point free_times_;
 
@@ -121,6 +125,9 @@ namespace GBSecond {
         __attribute_maybe_unused__ size_t free_seconds_{};
 
         std::shared_ptr<LockManager> lock_;
+
+        std::atomic_int64_t *count_;
+
     };
 
 
@@ -131,11 +138,11 @@ namespace GBSecond {
         explicit ThreadPoolManager(size_t core,size_t max,std::shared_ptr<SynchronizedQueue<T>> &queue,
                                    size_t activeTime,std::function<bool (T&&)> refusalPolicy)
                                    : core_(core),max_(max),active_times_(activeTime),refusal_policy_(refusalPolicy){
-            queue_ = std::move(queue);
+            queue_ = queue;
             lockManager_ = std::make_shared<LockManager>();
             cores_.reserve(core);
             for (size_t i = 0; i < core; ++i){
-                cores_.emplace_back(true,queue_,activeTime,lockManager_);
+                cores_.emplace_back(true,queue_,activeTime,lockManager_,&count_);
                 // 启动核心线程
             }
             std::for_each(cores_.begin(),cores_.end(),[&](TaskHandlerThread &taskHandler) {
@@ -154,6 +161,9 @@ namespace GBSecond {
         }
         auto GetSynchronizedQueue() -> std::shared_ptr<CapacityManager<T>> {
             return queue_;
+        }
+        auto GetCount() -> int64_t {
+            return count_.load();
         }
 
         /**
@@ -191,7 +201,7 @@ namespace GBSecond {
         std::vector<T> need_merge_task_;
 
         // 核心线程数
-        __attribute_maybe_unused__ size_t core_;
+        size_t core_;
 
         // 最大线程数
         size_t max_;
@@ -203,6 +213,8 @@ namespace GBSecond {
 
         // 空闲存活时间
         size_t active_times_;
+
+        std::atomic_int64_t count_{0};
 
         // 拒绝策略
         std::function<bool (T&&)> refusal_policy_{nullptr};

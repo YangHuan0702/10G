@@ -4,6 +4,7 @@
 #include "disk/disk_page_manager.h"
 #include "common/macro.h"
 #include <filesystem>
+#include <vector>
 
 namespace GBSecond {
 
@@ -29,6 +30,7 @@ namespace GBSecond {
     }
 
     auto DiskPageManager::Read(GBSecond::Page *page) -> bool {
+        std::lock_guard<std::mutex> guard(latch_);
         fs_->seekg(SEEKG_POS(page->GetPageId()));
         fs_->read(page->GetData(),PAGE_SIZE);
         return true;
@@ -36,11 +38,15 @@ namespace GBSecond {
 
 
     auto DiskPageManager::Read(GBSecond::page_id_t pageId) -> std::string {
-        char r[PAGE_SIZE] = {0};
-        fs_->seekg(SEEKG_POS(pageId));
-        fs_->read(r, PAGE_SIZE);
-        // Avoid repeating the return type from the declaration; use a braced initializer list instead
-        return {r,PAGE_SIZE};
+        return Read(pageId,PAGE_SIZE);
     }
 
+}
+
+std::string GBSecond::DiskPageManager::Read(GBSecond::page_id_t pageId, size_t readSize) {
+    std::lock_guard<std::mutex> guard(latch_);
+    std::vector<char> buf_(readSize,0);
+    fs_->seekg(SEEKG_POS(pageId));
+    fs_->read(buf_.data(), readSize);
+    return {buf_.data(),readSize};
 }

@@ -29,10 +29,20 @@ namespace GBSecond {
          */
         auto Read(page_id_t pageId) -> std::string override;
 
+        /**
+         * 读取Page
+         * @param pageId
+         * @param readSize
+         * @return
+         */
+        auto Read(page_id_t pageId, size_t readSize) -> std::string override;
+
     private:
         __attribute_maybe_unused__ std::string file_name_;
         __attribute_maybe_unused__ std::string file_path_;
         __attribute_maybe_unused__ size_t file_size_;
+
+        std::mutex latch_;
 
         std::fstream *fs_;
     };

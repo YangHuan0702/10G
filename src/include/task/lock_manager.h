@@ -29,7 +29,7 @@ namespace GBSecond{
         LockManager& operator=(LockManager&&) = delete;
 
         auto SetQueue(std::shared_ptr<SynchronizedQueue<Task>> &queue) -> void {
-            this->queue_ = std::move(queue);
+            this->queue_ = queue;
         }
 
 

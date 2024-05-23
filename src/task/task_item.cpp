@@ -7,8 +7,9 @@
 namespace GBSecond {
 
 
-    auto Task::ReadData() -> std::stringstream {
-        std::stringstream ss(diskManager_->Read(GetPageId()));
+    auto Task::ReadData(size_t pageSize) -> std::stringstream {
+        auto rowInfo = diskManager_->Read(GetPageId(),pageSize);
+        std::stringstream ss(rowInfo);
         return ss;
     }
 

@@ -24,8 +24,8 @@ namespace GBSecond {
 
     class Task{
     public:
-        explicit Task(page_id_t pageId,std::vector<Task> *residueCache,DiskManager *diskManager,TaskType taskType) noexcept :
-        pageId_(pageId),residue_cache_(residueCache),diskManager_(diskManager),taskType_(taskType){}
+        explicit Task(page_id_t pageId,std::vector<Task> *residueCache,DiskManager *diskManager,TaskType taskType,size_t readSize = PAGE_SIZE) noexcept :
+        pageId_(pageId),residue_cache_(residueCache),diskManager_(diskManager),taskType_(taskType),read_size_(readSize) {}
         ~Task() = default;
 //        Task(const Task &task) = delete;
 //        auto operator=(const Task &task) -> Task& = delete;
@@ -38,8 +38,8 @@ namespace GBSecond {
         inline auto SetResidue(const std::string &residue) -> void { residue_ = residue;}
         inline auto GetTaskType() -> TaskType { return taskType_;}
         inline auto SetTaskType(TaskType taskType) -> void { taskType_ = taskType;}
-
-        auto ReadData() -> std::stringstream;
+        inline auto GetReadSize() -> size_t { return read_size_;}
+        auto ReadData(size_t readSize) -> std::stringstream;
 
     private:
         page_id_t pageId_;
@@ -47,6 +47,7 @@ namespace GBSecond {
         __attribute_maybe_unused__ std::vector<Task> *residue_cache_{nullptr};
         DiskManager *diskManager_;
         TaskType taskType_;
+        size_t read_size_{0};
     } ;
 
 }
