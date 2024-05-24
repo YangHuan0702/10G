@@ -50,3 +50,9 @@ std::string GBSecond::DiskPageManager::Read(GBSecond::page_id_t pageId, size_t r
     fs_->read(buf_.data(), readSize);
     return {buf_.data(),readSize};
 }
+
+auto GBSecond::DiskPageManager::ReadStream(GBSecond::page_id_t pageId, size_t readSize) -> std::stringstream {
+    std::stringstream ss(Read(pageId,readSize));
+    return ss;
+}
+

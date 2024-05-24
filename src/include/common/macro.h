@@ -7,7 +7,12 @@
 
 namespace GBSecond {
 
-#define PAGE_SIZE 4096
+//#define PAGE_SIZE 4096 17s
+//#define PAGE_SIZE 16384 7s
+#define PAGE_SIZE 16384
+//#define PAGE_SIZE 32768 11s
+//#define PAGE_SIZE 24576 10s
+//#define PAGE_SIZE 24576 10s
 
 #define SEEKG_POS(pageId) (PAGE_SIZE * pageId)
 

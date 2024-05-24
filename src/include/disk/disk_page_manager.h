@@ -37,6 +37,16 @@ namespace GBSecond {
          */
         auto Read(page_id_t pageId, size_t readSize) -> std::string override;
 
+
+        /**
+         * 读取Page
+         * @param pageId
+         * @param readSize
+         * @return
+         */
+        auto ReadStream(page_id_t pageId,size_t readSize) -> std::stringstream;
+
+
     private:
         __attribute_maybe_unused__ std::string file_name_;
         __attribute_maybe_unused__ std::string file_path_;
