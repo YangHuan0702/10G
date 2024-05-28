@@ -25,14 +25,17 @@ namespace GBSecond {
     }
 
     DiskPageManager::~DiskPageManager() noexcept {
-        fs_->close();
+        {
+            std::lock_guard<std::mutex> guard(latch_);
+            fs_->close();
+        }
         delete fs_;
     }
 
     auto DiskPageManager::Read(GBSecond::Page *page) -> bool {
         std::lock_guard<std::mutex> guard(latch_);
         fs_->seekg(SEEKG_POS(page->GetPageId()));
-        fs_->read(page->GetData(),PAGE_SIZE);
+        fs_->read(page->GetData(),page->GetPageSize());
         return true;
     }
 
@@ -49,6 +52,14 @@ std::string GBSecond::DiskPageManager::Read(GBSecond::page_id_t pageId, size_t r
     fs_->seekg(SEEKG_POS(pageId));
     fs_->read(buf_.data(), readSize);
     return {buf_.data(),readSize};
+}
+
+auto GBSecond::DiskPageManager::ReadChar(GBSecond::page_id_t pageId, size_t readSize) -> std::shared_ptr<char[]> {
+    std::lock_guard<std::mutex> guard(latch_);
+    std::shared_ptr<char[]> r(new char[readSize]);
+    fs_->seekg(SEEKG_POS(pageId));
+    fs_->read(r.get(), readSize);
+    return r;
 }
 
 auto GBSecond::DiskPageManager::ReadStream(GBSecond::page_id_t pageId, size_t readSize) -> std::stringstream {

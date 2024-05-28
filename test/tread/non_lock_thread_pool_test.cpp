@@ -15,7 +15,7 @@ TEST(NonLockThreadTest,UnitTest) {
 
     auto fileSize = std::filesystem::file_size(GB_1_FILE);
 
-    DiskPageManager diskPageManager(GB_1_FILE);
+    auto *diskPageManager = new DiskPageManager(GB_1_FILE);
 
     auto nums = fileSize % PAGE_SIZE == 0 ? fileSize / PAGE_SIZE : fileSize / PAGE_SIZE + 1;
 
@@ -23,7 +23,7 @@ TEST(NonLockThreadTest,UnitTest) {
 
     int cores = 10;
 
-    auto threadPool = NonLockThreadPoolManager(cores,nums,&diskPageManager,overflowNums);
+    auto threadPool = NonLockThreadPoolManager(cores,nums,diskPageManager,overflowNums,nullptr);
 
     auto start = std::chrono::system_clock::now();
     threadPool.Start();

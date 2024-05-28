@@ -9,7 +9,7 @@ TEST(Int,IntTest) {
     int a = 556;
 
     std::cout << a / 10 << std::endl;
-    std::cout << a % 10 << std::endl;
+    std::cout << 557 % 556 << std::endl;
     std::cout << 248936 % 4096 << std::endl;
 }
 

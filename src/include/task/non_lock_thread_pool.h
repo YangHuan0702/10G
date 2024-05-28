@@ -11,6 +11,7 @@
 
 #include "common/type.h"
 #include "disk/disk_page_manager.h"
+#include "minBuf/mini_buffer_pool_manager.h"
 
 #include "task_item.h"
 
@@ -19,7 +20,8 @@ namespace GBSecond {
     class NonLockThread {
     public:
         explicit NonLockThread(std::atomic<page_id_t> *page,std::atomic_int64_t *count,int maxPage,
-                               DiskPageManager *disk_,size_t lastPageSize) : page_(page),count_(count),max_page_(maxPage),disk_(disk_),overflow_(lastPageSize) {
+                               DiskPageManager *disk_,size_t lastPageSize,MiniBufferPoolManager *buffer)
+                               : page_(page),count_(count),max_page_(maxPage),disk_(disk_),overflow_(lastPageSize),buffer_(buffer) {
         }
         ~NonLockThread() {
             if (t_.joinable()) {
@@ -62,16 +64,19 @@ namespace GBSecond {
 
         size_t overflow_;
 
+        MiniBufferPoolManager *buffer_;
+
+
     };
 
 
     class NonLockThreadPoolManager {
 
     public:
-        explicit NonLockThreadPoolManager(int cores,int maxPage,DiskPageManager *disk,size_t lastPageSize) : cores_(cores),max_page_(maxPage){
+        explicit NonLockThreadPoolManager(int cores,int maxPage,DiskPageManager *disk,size_t lastPageSize,MiniBufferPoolManager *bufferPoolManager) : cores_(cores),max_page_(maxPage){
             threads_.reserve(cores_);
             for (int i = 0; i < cores_; ++i) {
-                threads_.emplace_back(&page,&count_,max_page_,disk,lastPageSize);
+                threads_.emplace_back(&page,&count_,max_page_,disk,lastPageSize,bufferPoolManager);
             }
         }
 

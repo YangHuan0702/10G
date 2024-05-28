@@ -5,6 +5,7 @@
 #pragma once
 
 #include "disk_manager.h"
+#include <memory>
 
 namespace GBSecond {
 
@@ -36,6 +37,8 @@ namespace GBSecond {
          * @return
          */
         auto Read(page_id_t pageId, size_t readSize) -> std::string override;
+
+        auto ReadChar(page_id_t pageId, size_t readSize) -> std::shared_ptr<char[]>;
 
 
         /**

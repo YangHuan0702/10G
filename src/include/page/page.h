@@ -13,7 +13,9 @@ namespace GBSecond{
 
     class Page{
     public:
-        Page() = default;
+        Page() {
+            data_ = new char[PAGE_SIZE];
+        };
         explicit Page(page_id_t pageId) : pageId_(pageId){
             memset(data_,0,PAGE_SIZE);
         }
@@ -22,6 +24,12 @@ namespace GBSecond{
 
         auto ResetPageData() -> void {
             memset(data_,0,PAGE_SIZE);
+        }
+
+        auto Init() -> void {
+            memset(data_,0,PAGE_SIZE);
+            pin_ = 0;
+            pageId_ = -1;
         }
 
         ~Page() {
@@ -47,6 +55,8 @@ namespace GBSecond{
         inline auto RUnLock() -> void { rw_latch_.unlock_shared();}
         inline auto WLock() -> void { rw_latch_.lock();}
         inline auto WUnLock() -> void { rw_latch_.unlock();}
+        inline auto GetPageSize() -> size_t  { return page_size_;}
+        inline auto SetPageSize(size_t pageSize) -> void { page_size_ = pageSize;}
 
     private:
 
@@ -57,6 +67,8 @@ namespace GBSecond{
         size_t pin_{0};
 
         std::shared_mutex rw_latch_;
+
+        size_t page_size_{};
     };
 
 }
