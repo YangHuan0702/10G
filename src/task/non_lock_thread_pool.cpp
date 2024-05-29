@@ -3,6 +3,7 @@
 //
 
 #include "task/non_lock_thread_pool.h"
+#include "util/string_util.h"
 #include <string>
 
 namespace GBSecond {
@@ -14,18 +15,20 @@ namespace GBSecond {
 
             Page *page = buffer_->GetNextPage();
             while (page != nullptr) {
-                std::string row{page->GetData(), page->GetPageSize()};
-                size_t pos = 0;
-                long long count = 0;
-                while ((pos = row.find(targetKey, pos)) != std::string::npos) {
-                    pos += targetKey.length();
-                    count++;
-                }
+                auto count = StringUtil::BMCount(page->GetData(),page->GetPageSize(),targetKey);
+
+
+//                std::string row{page->GetData(), page->GetPageSize()};
+//                size_t pos = 0;
+//                long long count = 0;
+//                while ((pos = row.find(targetKey, pos)) != std::string::npos) {
+//                    pos += targetKey.length();
+//                    count++;
+//                }
+
                 this->count_->fetch_add(count);
                 page = buffer_->GetNextPage();
             }
-
-
 //            page_id_t processToPage = this->page_->fetch_add(1);
 
 //            while (processToPage < this->max_page_) {
